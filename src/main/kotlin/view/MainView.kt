@@ -1,6 +1,9 @@
 package weatherpikt.view
 
 import javafx.geometry.Pos
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -44,9 +47,19 @@ class MainView : View() {
             }
         }
 
-        // Add Filters to handle dragging the window
+        // Add event filters to handle dragging the window
         addEventFilter(MouseEvent.MOUSE_PRESSED, ::startDrag)
         addEventFilter(MouseEvent.MOUSE_DRAGGED, ::doDrag)
+
+        // Add event handler for closing application with escape and entering full screen with f
+        primaryStage.addEventHandler(KeyEvent.KEY_RELEASED) {
+            if( it.code == KeyCode.ESCAPE) close()
+            else if (it.code == KeyCode.F) primaryStage.isFullScreen = true
+        }
+
+        // Enter full screen on start if set in config and use w key to exit
+        primaryStage.isFullScreen = app.config.boolean("fullscreen", false)
+        primaryStage.fullScreenExitKeyCombination = KeyCodeCombination(KeyCode.W)
     }
 
     /**
