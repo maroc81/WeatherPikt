@@ -1,7 +1,9 @@
 package weatherpikt.view
 
+import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Priority
 import javafx.scene.text.TextAlignment
 import tornadofx.*
 import weatherpikt.Style
@@ -20,37 +22,45 @@ class CurrentConditionsView(val model: ForecastDataModel) : Fragment() {
     /**
      * Construct the GUI
      */
-    override val root = hbox {
+    override val root = gridpane {
         alignment = Pos.CENTER
-        vbox {
-            alignment = Pos.CENTER
-            label(model.temperatureHighDegrees).addClass(Style.curTempCSS)
-            label(model.summaryProperty()) {
-                isWrapText = true
-                textAlignment = TextAlignment.CENTER
-            }.addClass(Style.curSummaryCSS)
-        }
-        imgCurCondition = imageview(model.iconImage) {
-            fitHeight = 125.0
-            isPreserveRatio = true
-        }
-        gridpane {
-            hgap = 20.0
-            vgap = 10.0
-            alignment = Pos.CENTER
-            row {
-                label("Feels Like:").addClass(Style.curSummaryCSS)
-                label(model.temperatureLowDegrees).addClass(Style.curSummaryCSS)
+        row {
+            vbox {
+                alignment = Pos.CENTER
+                label(model.temperatureHighDegrees).addClass(Style.curTempCSS)
+                label(model.summaryProperty()) {
+                    isWrapText = true
+                    textAlignment = TextAlignment.CENTER
+                }.addClass(Style.curSummaryCSS)
             }
-            row {
-                label("Humidity: ").addClass(Style.curSummaryCSS)
-                label(model.humidityPercent).addClass(Style.curSummaryCSS)
+            imgCurCondition = imageview(model.iconImage) {
+                fitHeight = 125.0
+                isPreserveRatio = true
             }
-            row {
-                label("Pressure: ").addClass(Style.curSummaryCSS)
-                label(model.pressureProperty()).addClass(Style.curSummaryCSS)
+            gridpane {
+                hgap = 20.0
+                vgap = 10.0
+                alignment = Pos.CENTER
+                row {
+                    label("Feels Like:").addClass(Style.curSummaryCSS)
+                    label(model.temperatureLowDegrees).addClass(Style.curSummaryCSS)
+                }
+                row {
+                    label("Humidity: ").addClass(Style.curSummaryCSS)
+                    label(model.humidityPercent).addClass(Style.curSummaryCSS)
+                }
+                row {
+                    label("Pressure: ").addClass(Style.curSummaryCSS)
+                    label(model.pressureProperty()).addClass(Style.curSummaryCSS)
+                }
             }
         }
+        constraintsForColumn(0).hgrow = Priority.ALWAYS
+        constraintsForColumn(1).hgrow = Priority.ALWAYS
+        constraintsForColumn(2).hgrow = Priority.ALWAYS
+        constraintsForColumn(0).halignment = HPos.CENTER
+        constraintsForColumn(1).halignment = HPos.CENTER
+        constraintsForColumn(2).halignment = HPos.CENTER
     }
 
     /**
