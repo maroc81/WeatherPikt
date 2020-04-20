@@ -115,6 +115,7 @@ class WeatherController : Controller() {
         for (fm in forecastModels) {
             if (forecastResult.daily.data.size > fm.index) {
                 val daily = forecastResult.daily.data[fm.index]
+                fm.timeZone = forecastResult.timezone
                 fm.dateTime = daily.time
                 fm.icon = daily.icon
                 fm.temperatureLow = daily.temperatureLow

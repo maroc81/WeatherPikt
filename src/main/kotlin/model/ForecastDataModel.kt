@@ -28,6 +28,9 @@ class ForecastDataModel(val index: Int) {
     var dateTime: Instant by property(Instant.now())
     fun dateTimeProperty() = getProperty(ForecastDataModel::dateTime)
 
+    var timeZone: String by property("")
+    fun timeZoneProperty() = getProperty(ForecastDataModel::timeZone)
+
     /**
      * The icon string retrieved from the forecast
      */
@@ -99,17 +102,20 @@ class ForecastDataModel(val index: Int) {
     /**
      * Returns the forecast date time as a string that represents the forecast
      *
-     * TODO: The date time for a daily forecast is set to midnight for the time zone
-     *       of the forecast location.  So if the location is ahead of the current
-     *       system time zone (e.g. forecast for location is in Eastern Time Zone (EDT) and
-     *       local time zone is Central (CDT)), then this function will see the time
-     *       as 11:00 PM instead of 12:00AM and return the previous day (e.g. Saturday
-     *       instead of Sunday).
      */
     val dateTimeAsString = dateTimeProperty().stringBinding {
+        // If hourly forecast, pattern is hour and am or pam
+        // If daily forecast, just the day
         val pattern = if (type == ForecastType.HOURLY) "h a" else "EEEE"
         val formatter = DateTimeFormatter.ofPattern(pattern)
-        val dt = LocalDateTime.ofInstant(dateTime, ZoneId.systemDefault())
+        // Use zone id of forecast area so the hour or day refers
+        // to the time at the destination
+        val zoneId = try {
+            ZoneId.of(timeZone)
+        } catch (e: Exception) {
+            ZoneId.systemDefault()
+        }
+        val dt = LocalDateTime.ofInstant(dateTime, zoneId)
         formatter.format(dt)
     }
 
