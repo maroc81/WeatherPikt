@@ -1,3 +1,13 @@
+*.iml
+*.ipr
+.idea/
+.gradle/
+
+# Build output directories used by gradle and intellij
+bin/
+build/
+out/
+
 # Compiled class file
 *.class
 
