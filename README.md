@@ -1,6 +1,8 @@
 # WeatherPikt
 Internet Weather Station
 
+![Screenshot](/screenshots/480_320.png)
+
 Replacement for [Weather Pike built using Python and Kivy](https://www.github.com/maroc81/WeatherPike)
 
 
@@ -31,7 +33,7 @@ Weather Pikt is less than 600 lines, including comments and import statements, f
 
 ## Usage
 
-1. Register for an API key from [Dark Sky](https://darksky.net/dev)
+1. Register for an API key from [Dark Sky](https://darksky.net/dev) (Note: soon to be replaced due to recent acquisition)
 2. Install JDK 11+.  For Raspberry Pi, download from https://bell-sw.com/java11
 3. Clone this repository
 4. Edit `app.properties` and enter your API key, desired GPS coordinates, etc
