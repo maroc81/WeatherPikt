@@ -52,7 +52,7 @@ class WeatherPiktApp : App() {
  * Launch the main application
  */
 fun main(args: Array<String>) {
-    Application.launch(WeatherPiktApp::class.java, *args)
+    launch<WeatherPiktApp>(args)
 }
 
 /**

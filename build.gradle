@@ -49,7 +49,7 @@ dependencies {
 
 application {
     // Define the main class for the application
-    mainClassName = 'weatherpikt.WeatherPiktApp'
+    mainClassName = 'weatherpikt.WeatherPiktAppKt'
 }
 
 compileKotlin {
