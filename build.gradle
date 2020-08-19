@@ -12,7 +12,7 @@ plugins {
     // Apply the javafx plugin
     id 'org.openjfx.javafxplugin' version '0.0.8'
 
-    id 'com.gluonhq.client-gradle-plugin' version '0.1.28'
+    id 'com.gluonhq.client-gradle-plugin' version '0.1.29'
 }
 
 repositories {
@@ -64,6 +64,28 @@ compileKotlin {
     kotlinOptions.jvmTarget= '1.8'
 }
 
+
+// Configuration for gluon client to build a native executable
+// Steps to build a native executable
+// 1. Download latest graalvm from https://github.com/graalvm/graalvm-ce-dev-builds/releases
+// 2. Follow instructions at https://github.com/gluonhq/client-samples for setting up the target platform to build
+// 3. Build this project with 'fatJar' task
+// 4. Compile native with 'nativeCompile' task to download all dependencies for next step and later build
+// 5. Run this application with the command
+//    /opt/graalvm-ce-java11-20.3.0-dev/bin/java -agentlib:native-image-agent=config-output-dir=/PathTo/src/main/resources/META-INF/native-image -jar build/libs/WeatherPikt-all.jar
+//    And use as many functions as possible in the app (for this project just loading is enough)
+// 6. Run "./gradlew nativeBuild"
+// 7. Test run the built executable in build/client/<target>/WeatherPikt
+//
+// Notes:
+//  - See https://simply-how.com/fix-graalvm-native-image-compilation-issues for tips
+//  - Gradle plugin does not yet support windows build, need to use maven until then
+//  - Gradle plugin does not appear to support "nativeImageArgs" which is needed to get CSS to work
+//  - Binary is quite large (195MB).  Can use strip command to remove debug which removes about 20MB
+//    Need to investigate other options for reducing size if possible
 gluonClient {
     verbose = true
+    compilerArgs = ["--allow-incomplete-classpath"]
+    //nativeImageArgs = ["-H:EnableURLProtocols=css"]
+    graalvmHome = "/opt/graalvm-ce-java11-20.3.0-dev/"
 }
