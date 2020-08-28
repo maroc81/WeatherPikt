@@ -13,6 +13,10 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.8'
 
     id 'com.gluonhq.client-gradle-plugin' version '0.1.29'
+
+    // Apply runtime jlink plugin to package JRE
+    // Note: requires jlink which is included with JDK 9+
+    id 'org.beryx.runtime' version '1.11.2'
 }
 
 repositories {
@@ -88,4 +92,92 @@ gluonClient {
     compilerArgs = ["--allow-incomplete-classpath"]
     //nativeImageArgs = ["-H:EnableURLProtocols=css"]
     graalvmHome = "/opt/graalvm-ce-java11-20.3.0-dev/"
+}
+
+def jdkCacheDir = "$System.env.HOME/jdk"
+
+// Build a "runtime" zip or a native installer/package using jpackage
+//
+// The best way (for now) to perform this build is the following:
+// 1. Run "./gradlew runtimeZip" to download and extract target jdks
+// 2. Set JAVA_HOME to the downloaded JDK for your host platform
+//    e.g.:  export JAVA_HOME=~/jdk/linux-x64/jdk-11.0.8+10/
+// 3. Clean and rebuild then rerun "./gradlew runtimeZip"  this will make
+//    sure all your runtime zips are built with the same JDK version
+//    specified for each target
+// 4. If you want to create a native package or installer, first download JDK 14
+//    Note: JDK14 will only be used for packaging, the application will still be
+//    built and packaged with the target platform JDKs unless you change
+//    your JAVA_HOME to a different JDK and change target platforms below
+// 5. Run "./gradlew jpackage"
+runtime {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    imageDir = file("$buildDir/$project.name-runtime")
+    imageZip = file("$buildDir/$project.name-runtime.zip")
+
+    // Specify the JDK to use for creating the run time image and zip
+    // This must be the same version as what's specified in jdkDownload below under targetPlatform
+    // otherwise, you may run into build problems. See above for how to download the JDK
+    if(org.gradle.internal.os.OperatingSystem.current().linux) {
+        javaHome = "$jdkCacheDir/linux-x64/jdk-11.0.8+10"
+    }
+    if(org.gradle.internal.os.OperatingSystem.current().windows) {
+        javaHome = "$jdkCacheDir/win-x64/jdk-11.0.8+10"
+    }
+    if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
+        javaHome = "$jdkCacheDir/mac-x64/jdk-11.0.8+10"
+    }
+
+    // Define target platforms for linux, windows, and mac with links to automatically
+    // download the JDK needed to produce a runtime.  JDK 11 is specified since
+    // JDK 11 is LTS and this project does not require a newer JDK version
+    targetPlatform("linux-x64") {
+        jdkHome = jdkDownload("https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_x64_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz") {
+            downloadDir = "$jdkCacheDir/linux-x64"
+        }
+    }
+    targetPlatform("win-x64") {
+        jdkHome = jdkDownload("https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_x64_windows_openj9_11.0.8_10_openj9-0.21.0.zip") {
+            downloadDir = "$jdkCacheDir/win-x64"
+        }
+    }
+    targetPlatform("mac-x64") {
+        jdkHome = jdkDownload("https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_x64_mac_openj9_11.0.8_10_openj9-0.21.0.tar.gz") {
+            downloadDir = "$jdkCacheDir/mac-x64"
+        }
+    }
+
+    // For windows, don't show the console by launching with javaw,
+    // for other platforms this does nothing
+    launcher {
+        noConsole = true
+    }
+
+    jpackage {
+        // Need at least JDK 14 to get access to the jpackage tool. We could specify JDK 14 in the
+        // target platforms above and use that for the runtime and package.  For now just use the
+        // least version we can get away with for target platforms and only require JDK 14 for
+        // creating packages/installers.
+        jpackageHome = "$jdkCacheDir/jdk-14.0.2"
+
+        installerOptions = ["--verbose", "--vendor", "maroc81", "--description", "Internet Weather Station"]
+        resourceDir = file("src/main/resources/jpackage")
+        if(org.gradle.internal.os.OperatingSystem.current().linux) {
+            installerType = "deb"
+            targetPlatformName = "linux-x64"
+        }
+        if(org.gradle.internal.os.OperatingSystem.current().windows) {
+            // Download WiX 3.0 or later from https://wixtoolset.org and add it to the PATH for MSI
+            // Set type to "msi" so it's obvious this is an installer and not a single executable
+            installerType = "msi"
+            // Set up to install in user writable directory and add shortcuts
+            installerOptions += ["--win-per-user-install", "--win-dir-chooser", "--win-menu", "--win-menu-group", "Weather Pikt", "--win-shortcut"]
+            installerOptions += ["--win-upgrade-uuid", "6cae2901-7816-410e-9b3f-0c8e3315e97d"]
+            targetPlatformName = "win-x64"
+        }
+        if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            installerType = "dmg"
+            targetPlatformName = "mac-x64"
+        }
+    }
 }
